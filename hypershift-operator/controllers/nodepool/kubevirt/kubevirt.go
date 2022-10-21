@@ -104,7 +104,7 @@ func virtualMachineTemplateBase(image string, kvPlatform *hyperv1.KubevirtNodePo
 						Devices: kubevirtv1.Devices{
 							Interfaces: []kubevirtv1.Interface{
 								{
-									Name: "default",
+									Name: "multus",
 									InterfaceBindingMethod: kubevirtv1.InterfaceBindingMethod{
 										Bridge: &kubevirtv1.InterfaceBridge{},
 									},
@@ -114,9 +114,11 @@ func virtualMachineTemplateBase(image string, kvPlatform *hyperv1.KubevirtNodePo
 					},
 					Networks: []kubevirtv1.Network{
 						{
-							Name: "default",
+							Name: "multus",
 							NetworkSource: kubevirtv1.NetworkSource{
-								Pod: &kubevirtv1.PodNetwork{},
+								Multus: &kubevirtv1.MultusNetwork{
+									NetworkName: "bridge-network-vmis",
+								},
 							},
 						},
 					},
