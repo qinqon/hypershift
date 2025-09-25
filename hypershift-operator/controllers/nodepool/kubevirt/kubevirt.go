@@ -285,7 +285,6 @@ func virtualMachineTemplateBase(nodePool *hyperv1.NodePool, bootImage BootImage)
 		}
 		template.Spec.Template.Spec.Domain.Devices.HostDevices = hostDevices
 	}
-
 	return template, nil
 }
 
@@ -432,6 +431,48 @@ func MachineTemplateSpec(nodePool *hyperv1.NodePool, hcluster *hyperv1.HostedClu
 	if hcluster.Spec.Platform.Kubevirt != nil && hcluster.Spec.Platform.Kubevirt.Credentials != nil {
 		vmTemplate.ObjectMeta.Namespace = hcluster.Spec.Platform.Kubevirt.Credentials.InfraNamespace
 	}
+	var networkConfig *capikubevirt.NetworkConfig
+	if nodePool.Spec.Platform.Kubevirt.BootstrapNetworkConfig != nil {
+		bootstrapNetworkConfig := nodePool.Spec.Platform.Kubevirt.BootstrapNetworkConfig
+		networkConfig = &capikubevirt.NetworkConfig{
+			IPPool: map[string]capikubevirt.IPPoolEntry{
+				bootstrapNetworkConfig.Network: capikubevirt.IPPoolEntry{
+					InterfaceName: bootstrapNetworkConfig.Interface,
+					Subnets:       bootstrapNetworkConfig.Addresses,
+				},
+			},
+			// TODO: Iterate parts to have multiple gateays and nameservers
+			CloudInitNetworkData: fmt.Sprintf(`
+              {
+              "links": [
+                {
+                  "id": "%[1]s",
+                  "type": "physical",
+                  "name": "%[1]s"
+                }
+              ],
+              "networks": [
+                {
+                  "id": "network0",
+                  "type": "ipv4",
+                  "link": "%[1]s",
+                  "routes": [{
+                    "network": "0.0.0.0",
+                    "netmask": "0.0.0.0",
+                    "gateway": "%[2]s"
+                  }]
+                }
+              ],
+              "services": [
+                {
+                  "type": "dns",
+                  "address": "%[2]s"
+                },
+              ]
+              }
+`, bootstrapNetworkConfig.Interface, bootstrapNetworkConfig.Gateway[0], bootstrapNetworkConfig.Nameservers[0]),
+		}
+	}
 
 	if err := applyJsonPatches(nodePool, hcluster, vmTemplate); err != nil {
 		return nil, err
@@ -442,6 +483,7 @@ func MachineTemplateSpec(nodePool *hyperv1.NodePool, hcluster *hyperv1.HostedClu
 			Spec: capikubevirt.KubevirtMachineSpec{
 				VirtualMachineTemplate: *vmTemplate,
 				BootstrapCheckSpec:     capikubevirt.VirtualMachineBootstrapCheckSpec{CheckStrategy: "none"},
+				NetworkConfig:          networkConfig,
 			},
 		},
 	}, nil

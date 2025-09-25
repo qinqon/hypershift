@@ -284,6 +284,14 @@ func (o *KubevirtPlatformCreateOptions) NodePoolPlatform() *hyperv1.KubevirtNode
 		Compute:              &hyperv1.KubevirtCompute{},
 		AdditionalNetworks:   o.AdditionalNetworks,
 		AttachDefaultNetwork: o.AttachDefaultNetwork,
+		// TODO: Parameterize this
+		BootstrapNetworkConfig: &hyperv1.KubevirtBootstrapNetworkConfig{
+			Network:     "TODO",
+			Interface:   "enp1s0",
+			Addresses:   []string{"192.168.123.100-192.168.168.123.200"},
+			Nameservers: []string{"192.168.123.1"},
+			Gateway:     []string{"192.168.123.1"},
+		},
 	}
 
 	if o.RootVolumeVolumeMode != "" {

@@ -179,6 +179,9 @@ type KubevirtNodePoolPlatform struct {
 	// +kubebuilder:default=true
 	AttachDefaultNetwork *bool `json:"attachDefaultNetwork,omitempty"`
 
+	// +optional
+	BootstrapNetworkConfig *KubevirtBootstrapNetworkConfig `json:"bootstrapNetworkConfig,omitempty"`
+
 	// nodeSelector is a selector which must be true for the kubevirt VirtualMachine to fit on a node.
 	// Selector which must match a node's labels for the VM to be scheduled on that node. More info:
 	// https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
@@ -202,6 +205,20 @@ type KubevirtNetwork struct {
 	// +kubebuilder:validation:MaxLength=255
 	// +required
 	Name string `json:"name"`
+}
+
+type KubevirtBootstrapNetworkConfig struct {
+	// +required
+	Network string `json:"network"`
+	// +optional
+	// +kubebuilder:default=enp1s0
+	Interface string `json:"interface,omitempty"`
+	// +required
+	Addresses []string `json:"addresses"`
+	// +required
+	Nameservers []string `json:"nameservers"`
+	// +required
+	Gateway []string `json:"gateway"`
 }
 
 type KubevirtHostDevice struct {

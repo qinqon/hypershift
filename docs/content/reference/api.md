@@ -7659,6 +7659,74 @@ the same cluster and namespace as the Hosted Control Plane.</p>
 </tr>
 </tbody>
 </table>
+###KubevirtBootstrapNetworkConfig { #hypershift.openshift.io/v1beta1.KubevirtBootstrapNetworkConfig }
+<p>
+(<em>Appears on:</em>
+<a href="#hypershift.openshift.io/v1beta1.KubevirtNodePoolPlatform">KubevirtNodePoolPlatform</a>)
+</p>
+<p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>network</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>interface</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>addresses</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>nameservers</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>gateway</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
 ###KubevirtCachingStrategy { #hypershift.openshift.io/v1beta1.KubevirtCachingStrategy }
 <p>
 (<em>Appears on:</em>
@@ -8015,6 +8083,19 @@ bool
 <em>(Optional)</em>
 <p>attachDefaultNetwork specify if the default pod network should be attached to the nodes
 this can only be set to false if AdditionalNetworks are configured</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>bootstrapNetworkConfig</code></br>
+<em>
+<a href="#hypershift.openshift.io/v1beta1.KubevirtBootstrapNetworkConfig">
+KubevirtBootstrapNetworkConfig
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
 </td>
 </tr>
 <tr>

@@ -96,6 +96,37 @@ spec:
                             type: string
                         type: object
                         x-kubernetes-map-type: atomic
+                      networkConfig:
+                        properties:
+                          cloudInitNetworkData:
+                            description: |-
+                              CloudInitNetworkData contains user-provided cloud-init network data in YAML format.
+                              The system will find the interface specified in IPPool entries and inject
+                              allocated IP addresses into this network configuration.
+                            type: string
+                          ipPool:
+                            additionalProperties:
+                              properties:
+                                interfaceName:
+                                  type: string
+                                subnets:
+                                  description: |-
+                                    Subnets specify IP ranges from which addresses will be allocated for this interface.
+                                    Supports CIDR notation, hyphenated ranges, and single IPs.
+                                  items:
+                                    type: string
+                                  type: array
+                              required:
+                              - interfaceName
+                              - subnets
+                              type: object
+                            description: |-
+                              IPPool is a map where the key is the network name and the value contains
+                              the interface name and subnets for that network.
+                            type: object
+                        required:
+                        - ipPool
+                        type: object
                       providerID:
                         description: ProviderID TBD what to use for Kubevirt
                         type: string
@@ -2791,7 +2822,11 @@ spec:
                                                     state:
                                                       description: |-
                                                         State represents the requested operational state of the interface.
-                                                        The (only) value supported is `absent`, expressing a request to remove the interface.
+                                                        The supported values are:
+                                                        `absent`, expressing a request to remove the interface.
+                                                        `down`, expressing a request to set the link down.
+                                                        `up`, expressing a request to set the link up.
+                                                        Empty value functions as `up`.
                                                       type: string
                                                     tag:
                                                       description: If specified, the
@@ -3234,6 +3269,18 @@ spec:
                                                   UUID reported by the vmi bios.
                                                   Defaults to a random generated uid.
                                                 type: string
+                                            type: object
+                                          ioThreads:
+                                            description: IOThreads specifies the IOThreads
+                                              options.
+                                            properties:
+                                              supplementalPoolThreadCount:
+                                                description: SupplementalPoolThreadCount
+                                                  specifies how many iothreads are
+                                                  allocated for the supplementalPool
+                                                  policy.
+                                                format: int32
+                                                type: integer
                                             type: object
                                           ioThreadsPolicy:
                                             description: |-
@@ -4154,9 +4201,8 @@ spec:
                                                     and hotunplugged.
                                                   type: boolean
                                                 name:
-                                                  description: |-
-                                                    Name of both the DataVolume and the PVC in the same namespace.
-                                                    After PVC population the DataVolume is garbage collected by default.
+                                                  description: Name of both the DataVolume
+                                                    and the PVC in the same namespace.
                                                   type: string
                                               required:
                                               - name

@@ -1005,6 +1005,31 @@ spec:
                           attachDefaultNetwork specify if the default pod network should be attached to the nodes
                           this can only be set to false if AdditionalNetworks are configured
                         type: boolean
+                      bootstrapNetworkConfig:
+                        properties:
+                          addresses:
+                            items:
+                              type: string
+                            type: array
+                          gateway:
+                            items:
+                              type: string
+                            type: array
+                          interface:
+                            default: enp1s0
+                            type: string
+                          nameservers:
+                            items:
+                              type: string
+                            type: array
+                          network:
+                            type: string
+                        required:
+                        - addresses
+                        - gateway
+                        - nameservers
+                        - network
+                        type: object
                       compute:
                         default:
                           cores: 2
