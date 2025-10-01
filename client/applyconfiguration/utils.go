@@ -179,6 +179,8 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 		return &hypershiftv1beta1.KMSSpecApplyConfiguration{}
 	case v1beta1.SchemeGroupVersion.WithKind("KubeconfigSecretRef"):
 		return &hypershiftv1beta1.KubeconfigSecretRefApplyConfiguration{}
+	case v1beta1.SchemeGroupVersion.WithKind("KubevirtBootstrapNetworkConfig"):
+		return &hypershiftv1beta1.KubevirtBootstrapNetworkConfigApplyConfiguration{}
 	case v1beta1.SchemeGroupVersion.WithKind("KubevirtCachingStrategy"):
 		return &hypershiftv1beta1.KubevirtCachingStrategyApplyConfiguration{}
 	case v1beta1.SchemeGroupVersion.WithKind("KubevirtCompute"):

@@ -208,6 +208,29 @@ func TestValidatedKubevirtPlatformCreateOptions_Complete(t *testing.T) {
 			},
 			expectedError: "host device count must be greater than or equal to 1. received: [-8]",
 		},
+		{
+			name: "should succeed configuring bootstrap-network-config",
+			input: RawKubevirtPlatformCreateOptions{
+				KubevirtPlatformOptions: &KubevirtPlatformOptions{
+					Cores:                1,
+					RootVolumeSize:       16,
+					AttachDefaultNetwork: ptr.To(true),
+				},
+				BootstrapNetworkConfig: "network:ns1/nad1,interface:eth0,address:10.0.0.1/24,nameserver:8.8.8.8,gateway:10.0.0.254",
+			},
+		},
+		{
+			name: "should fail with unexpected bootstrap-network-config parameters",
+			input: RawKubevirtPlatformCreateOptions{
+				KubevirtPlatformOptions: &KubevirtPlatformOptions{
+					Cores:                1,
+					RootVolumeSize:       16,
+					AttachDefaultNetwork: ptr.To(true),
+				},
+				BootstrapNetworkConfig: "badfield:value",
+			},
+			expectedError: `failed to parse "--bootstrap-network-config" flag: unknown param(s): badfield:value`,
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			validated, err := test.input.Validate()

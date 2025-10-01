@@ -24,13 +24,14 @@ import (
 // KubevirtNodePoolPlatformApplyConfiguration represents a declarative configuration of the KubevirtNodePoolPlatform type for use
 // with apply.
 type KubevirtNodePoolPlatformApplyConfiguration struct {
-	RootVolume                 *KubevirtRootVolumeApplyConfiguration  `json:"rootVolume,omitempty"`
-	Compute                    *KubevirtComputeApplyConfiguration     `json:"compute,omitempty"`
-	NetworkInterfaceMultiQueue *hypershiftv1beta1.MultiQueueSetting   `json:"networkInterfaceMultiqueue,omitempty"`
-	AdditionalNetworks         []KubevirtNetworkApplyConfiguration    `json:"additionalNetworks,omitempty"`
-	AttachDefaultNetwork       *bool                                  `json:"attachDefaultNetwork,omitempty"`
-	NodeSelector               map[string]string                      `json:"nodeSelector,omitempty"`
-	KubevirtHostDevices        []KubevirtHostDeviceApplyConfiguration `json:"hostDevices,omitempty"`
+	RootVolume                 *KubevirtRootVolumeApplyConfiguration             `json:"rootVolume,omitempty"`
+	Compute                    *KubevirtComputeApplyConfiguration                `json:"compute,omitempty"`
+	NetworkInterfaceMultiQueue *hypershiftv1beta1.MultiQueueSetting              `json:"networkInterfaceMultiqueue,omitempty"`
+	AdditionalNetworks         []KubevirtNetworkApplyConfiguration               `json:"additionalNetworks,omitempty"`
+	AttachDefaultNetwork       *bool                                             `json:"attachDefaultNetwork,omitempty"`
+	BootstrapNetworkConfig     *KubevirtBootstrapNetworkConfigApplyConfiguration `json:"bootstrapNetworkConfig,omitempty"`
+	NodeSelector               map[string]string                                 `json:"nodeSelector,omitempty"`
+	KubevirtHostDevices        []KubevirtHostDeviceApplyConfiguration            `json:"hostDevices,omitempty"`
 }
 
 // KubevirtNodePoolPlatformApplyConfiguration constructs a declarative configuration of the KubevirtNodePoolPlatform type for use with
@@ -81,6 +82,14 @@ func (b *KubevirtNodePoolPlatformApplyConfiguration) WithAdditionalNetworks(valu
 // If called multiple times, the AttachDefaultNetwork field is set to the value of the last call.
 func (b *KubevirtNodePoolPlatformApplyConfiguration) WithAttachDefaultNetwork(value bool) *KubevirtNodePoolPlatformApplyConfiguration {
 	b.AttachDefaultNetwork = &value
+	return b
+}
+
+// WithBootstrapNetworkConfig sets the BootstrapNetworkConfig field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the BootstrapNetworkConfig field is set to the value of the last call.
+func (b *KubevirtNodePoolPlatformApplyConfiguration) WithBootstrapNetworkConfig(value *KubevirtBootstrapNetworkConfigApplyConfiguration) *KubevirtNodePoolPlatformApplyConfiguration {
+	b.BootstrapNetworkConfig = value
 	return b
 }
 

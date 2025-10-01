@@ -179,6 +179,13 @@ type KubevirtNodePoolPlatform struct {
 	// +kubebuilder:default=true
 	AttachDefaultNetwork *bool `json:"attachDefaultNetwork,omitempty"`
 
+	// BootstrapNetworkConfig specifies static network configuration for the bootstrap process
+	// of KubeVirt virtual machines. This configuration is applied during VM initialization to set up
+	// networking before the node joins the cluster.
+	//
+	// +optional
+	BootstrapNetworkConfig *KubevirtBootstrapNetworkConfig `json:"bootstrapNetworkConfig,omitempty"`
+
 	// nodeSelector is a selector which must be true for the kubevirt VirtualMachine to fit on a node.
 	// Selector which must match a node's labels for the VM to be scheduled on that node. More info:
 	// https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
@@ -202,6 +209,31 @@ type KubevirtNetwork struct {
 	// +kubebuilder:validation:MaxLength=255
 	// +required
 	Name string `json:"name"`
+}
+
+// KubevirtBootstrapNetworkConfig specifies static network configuration for the bootstrap process
+// of KubeVirt virtual machines. This configuration is applied during VM initialization to set up
+// networking before the node joins the cluster.
+type KubevirtBootstrapNetworkConfig struct {
+	// network specifies the name of the network attached to the VM for bootstrap networking.
+	// It is a value with the format "[namespace]/[name]" to reference the multus network attachment definition.
+	// +required
+	Network string `json:"network"`
+	// interface specifies the network interface name to configure within the VM.
+	// Defaults to "enp1s0" if not specified.
+	// +optional
+	// +kubebuilder:default=enp1s0
+	Interface string `json:"interface,omitempty"`
+	// addresses is a list of IP addresses (in CIDR notation) to assign to the network interface.
+	// Example: ["192.168.1.10/24"]
+	// +required
+	Addresses []string `json:"addresses"`
+	// nameservers is a list of DNS server IP addresses to use for name resolution.
+	// +required
+	Nameservers []string `json:"nameservers"`
+	// gateway is a list of gateway IP addresses for routing traffic outside the local network.
+	// +required
+	Gateway []string `json:"gateway"`
 }
 
 type KubevirtHostDevice struct {

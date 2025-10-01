@@ -49,6 +49,7 @@ func bindCoreOptions(opts *RawKubevirtPlatformCreateOptions, flags *pflag.FlagSe
 	flags.StringVar(&opts.NetworkInterfaceMultiQueue, "network-multiqueue", opts.NetworkInterfaceMultiQueue, `If "Enable", virtual network interfaces configured with a virtio bus will also enable the vhost multiqueue feature for network devices. supported values are "Enable" and "Disable"; default = "Enable"`)
 	flags.StringVar(&opts.QoSClass, "qos-class", opts.QoSClass, `If "Guaranteed", set the limit cpu and memory of the VirtualMachineInstance, to be the same as the requested cpu and memory; supported values: "Burstable" and "Guaranteed"`)
 	flags.StringArrayVar(&opts.AdditionalNetworks, "additional-network", opts.AdditionalNetworks, fmt.Sprintf(`Specify additional network that should be attached to the nodes, the "name" field should point to a multus network attachment definition with the format "[namespace]/[name]", it can be specified multiple times to attach to multiple networks. Supported parameters: %s, example: "name:ns1/nad-foo`, cmdutil.Supported(NetworkOpts{})))
+	flags.StringVar(&opts.BootstrapNetworkConfig, "bootstrap-network-config", opts.BootstrapNetworkConfig, fmt.Sprintf(`Specify bootstrap network configuration. Supported parameters: %s, example: "network:ns1/nad1,interface:eth0,address:10.0.0.1/24,nameserver:8.8.8.8,gateway:10.0.0.254"`, cmdutil.Supported(BootstrapNetworkConfigOpts{})))
 	flags.BoolVar(opts.AttachDefaultNetwork, "attach-default-network", *opts.AttachDefaultNetwork, `Specify if the default pod network should be attached to the nodes, equal symbol should be used to pass boolean value: --attach-default-network=[true|false]. This can only be set if --additional-network is configured`)
 	flags.StringToStringVar(&opts.VmNodeSelector, "vm-node-selector", opts.VmNodeSelector, "A comma separated list of key=value pairs to use as the node selector for the KubeVirt VirtualMachines to be scheduled onto. (e.g. role=kubevirt,size=large)")
 	flags.StringArrayVar(&opts.HostDevices, "host-device-name", opts.HostDevices, "PCI device name to expose from the infra cluster to the guest cluster nodes. Can be specified multiple times for different device names. Example: <device-name>,count:3. count is optional and the default is 1.")
@@ -63,6 +64,7 @@ type RawKubevirtPlatformCreateOptions struct {
 	*KubevirtPlatformOptions
 	NetworkInterfaceMultiQueue string
 	QoSClass                   string
+	BootstrapNetworkConfig     string
 	AdditionalNetworks         []string
 	HostDevices                []string
 }
@@ -128,6 +130,14 @@ type NetworkOpts struct {
 	Name string `param:"name"`
 }
 
+type BootstrapNetworkConfigOpts struct {
+	Network    string `param:"network"`
+	Interface  string `param:"interface"`
+	Address    string `param:"address"`
+	Nameserver string `param:"nameserver"`
+	Gateway    string `param:"gateway"`
+}
+
 type HostDevicesOpts struct {
 	Name  string `param:"name"`
 	Count int    `param:"count"`
@@ -137,10 +147,11 @@ type HostDevicesOpts struct {
 type completetedKubevirtPlatformCreateOptions struct {
 	*KubevirtPlatformOptions
 
-	MultiQueue          *hyperv1.MultiQueueSetting
-	QoSClass            *hyperv1.QoSClass
-	AdditionalNetworks  []hyperv1.KubevirtNetwork
-	KubevirtHostDevices []hyperv1.KubevirtHostDevice
+	MultiQueue             *hyperv1.MultiQueueSetting
+	QoSClass               *hyperv1.QoSClass
+	BootstrapNetworkConfig *hyperv1.KubevirtBootstrapNetworkConfig
+	AdditionalNetworks     []hyperv1.KubevirtNetwork
+	KubevirtHostDevices    []hyperv1.KubevirtHostDevice
 }
 
 type KubevirtPlatformCreateOptions struct {
@@ -176,6 +187,21 @@ func (o *ValidatedKubevirtPlatformCreateOptions) Complete() (*KubevirtPlatformCr
 		additionalNetworks = append(additionalNetworks, hyperv1.KubevirtNetwork{
 			Name: additionalNetworkOpts.Name,
 		})
+	}
+
+	var bootstrapNetworkConfig *hyperv1.KubevirtBootstrapNetworkConfig
+	if o.BootstrapNetworkConfig != "" {
+		bootstrapNetworkConfigOpt := BootstrapNetworkConfigOpts{}
+		if err := cmdutil.Map("bootstrap-network-config", o.BootstrapNetworkConfig, &bootstrapNetworkConfigOpt); err != nil {
+			return nil, err
+		}
+		bootstrapNetworkConfig = &hyperv1.KubevirtBootstrapNetworkConfig{
+			Interface:   bootstrapNetworkConfigOpt.Interface,
+			Network:     bootstrapNetworkConfigOpt.Network,
+			Addresses:   []string{bootstrapNetworkConfigOpt.Address},
+			Nameservers: []string{bootstrapNetworkConfigOpt.Nameserver},
+			Gateway:     []string{bootstrapNetworkConfigOpt.Gateway},
+		}
 	}
 
 	var hostDevices []hyperv1.KubevirtHostDevice
@@ -215,6 +241,7 @@ func (o *ValidatedKubevirtPlatformCreateOptions) Complete() (*KubevirtPlatformCr
 			MultiQueue:              multiQueue,
 			QoSClass:                qosClass,
 			AdditionalNetworks:      additionalNetworks,
+			BootstrapNetworkConfig:  bootstrapNetworkConfig,
 			KubevirtHostDevices:     hostDevices,
 		},
 	}, nil
@@ -281,9 +308,10 @@ func (o *KubevirtPlatformCreateOptions) NodePoolPlatform() *hyperv1.KubevirtNode
 				},
 			},
 		},
-		Compute:              &hyperv1.KubevirtCompute{},
-		AdditionalNetworks:   o.AdditionalNetworks,
-		AttachDefaultNetwork: o.AttachDefaultNetwork,
+		Compute:                &hyperv1.KubevirtCompute{},
+		AdditionalNetworks:     o.AdditionalNetworks,
+		BootstrapNetworkConfig: o.BootstrapNetworkConfig,
+		AttachDefaultNetwork:   o.AttachDefaultNetwork,
 	}
 
 	if o.RootVolumeVolumeMode != "" {
